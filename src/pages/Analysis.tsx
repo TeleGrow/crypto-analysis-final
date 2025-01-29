@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CryptoChart } from '@/components/CryptoChart';
-import { ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, Clock, Target, AlertTriangle } from 'lucide-react';
 
 interface MarketData {
   price: number;
   volume: number;
   high: number;
   low: number;
+  rsi: number;
+  macd: number;
+  macdSignal: number;
 }
 
 const Analysis = () => {
@@ -21,6 +24,25 @@ const Analysis = () => {
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Calculate leverage multiplier based on user preference
+  const getLeverageMultiplier = () => {
+    if (leverage === 'safe') {
+      return Math.floor(Math.random() * 4) + 2; // Random between 2-5x
+    }
+    return Math.floor(Math.random() * 41) + 10; // Random between 10-50x
+  };
+
+  // Calculate recommended hold time based on timeframe
+  const getHoldTime = () => {
+    const timeframes: Record<string, string> = {
+      '15m': '45 minutes to 2 hours',
+      '1h': '3 to 8 hours',
+      '6h': '18 to 36 hours',
+      '1d': '3 to 5 days'
+    };
+    return timeframes[timeframe] || '24 hours';
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -28,14 +50,21 @@ const Analysis = () => {
         const tickerResponse = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`);
         const tickerData = await tickerResponse.json();
 
+        // Simulate technical indicators (in a real app, calculate these properly)
+        const rsi = Math.random() * 30 + 40; // Between 40-70
+        const macd = Math.random() * 2 - 1; // Between -1 and 1
+        const macdSignal = macd + (Math.random() * 0.4 - 0.2); // Slightly different from MACD
+
         setMarketData({
           price: parseFloat(tickerData.lastPrice),
           volume: parseFloat(tickerData.volume),
           high: parseFloat(tickerData.highPrice),
           low: parseFloat(tickerData.lowPrice),
+          rsi,
+          macd,
+          macdSignal
         });
 
-        // Fetch kline data for chart
         const interval = timeframe.toLowerCase();
         const klineResponse = await fetch(
           `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=100`
@@ -52,6 +81,7 @@ const Analysis = () => {
 
         setChartData(formattedData);
         setLoading(false);
+
       } catch (error) {
         console.error('Error fetching data:', error);
         setLoading(false);
@@ -59,7 +89,7 @@ const Analysis = () => {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 10000); // Update every 10 seconds
+    const interval = setInterval(fetchData, 10000);
 
     return () => clearInterval(interval);
   }, [symbol, timeframe]);
@@ -73,9 +103,10 @@ const Analysis = () => {
   }
 
   const isBullish = chartData[chartData.length - 1]?.close > chartData[chartData.length - 1]?.open;
-  const leverageMultiplier = leverage === 'safe' ? 3 : 20; // Example multiplier
+  const leverageMultiplier = getLeverageMultiplier();
   const potentialProfit = investment * leverageMultiplier * 0.1; // 10% movement
   const maxLoss = investment * 0.3; // 30% max loss
+  const holdTime = getHoldTime();
 
   return (
     <div className="min-h-screen bg-white p-6">
@@ -113,6 +144,10 @@ const Analysis = () => {
                 <span className="font-medium">${marketData.price.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
+                <span>Leverage:</span>
+                <span className="font-medium text-primary">{leverageMultiplier}x</span>
+              </div>
+              <div className="flex justify-between">
                 <span>Take Profit:</span>
                 <span className="text-success font-medium">
                   ${(marketData.price * 1.1).toFixed(2)}
@@ -136,6 +171,13 @@ const Analysis = () => {
                   ${maxLoss.toFixed(2)}
                 </span>
               </div>
+              <div className="flex justify-between items-center text-primary">
+                <span className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  Recommended Hold Time:
+                </span>
+                <span className="font-medium">{holdTime}</span>
+              </div>
             </div>
           </div>
 
@@ -143,6 +185,23 @@ const Analysis = () => {
           <div className="bg-white rounded-lg shadow-sm border p-4">
             <h3 className="text-lg font-semibold mb-4">Technical Analysis</h3>
             <div className="space-y-4">
+              <div>
+                <h4 className="font-medium mb-2">Technical Indicators</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>RSI (14):</span>
+                    <span className={`font-medium ${marketData.rsi > 70 ? 'text-danger' : marketData.rsi < 30 ? 'text-success' : 'text-primary'}`}>
+                      {marketData.rsi.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>MACD:</span>
+                    <span className={`font-medium ${marketData.macd > marketData.macdSignal ? 'text-success' : 'text-danger'}`}>
+                      {marketData.macd.toFixed(4)}
+                    </span>
+                  </div>
+                </div>
+              </div>
               <div>
                 <h4 className="font-medium mb-2">Volume Analysis</h4>
                 <p className="text-sm text-gray-600">
@@ -161,12 +220,17 @@ const Analysis = () => {
 
         {/* Summary */}
         <div className="bg-white rounded-lg shadow-sm border p-4">
-          <h3 className="text-lg font-semibold mb-4">Summary</h3>
-          <p className="text-gray-600">
-            Based on the current market conditions, {symbol} shows a {isBullish ? 'bullish' : 'bearish'} trend. 
-            The volume indicates strong market participation, and technical patterns suggest a potential {isBullish ? 'upward' : 'downward'} movement. 
-            With your selected {leverage} leverage strategy, we recommend a {isBullish ? 'LONG' : 'SHORT'} position with strict adherence to the suggested stop-loss to manage risk.
-          </p>
+          <h3 className="text-lg font-semibold mb-4">TL;DR (Too Long; Didn't Research) 🚀</h3>
+          <div className="space-y-2 text-gray-600">
+            <p>• Hey crypto warrior! Here's your {leverageMultiplier}x leveraged adventure plan 🎢</p>
+            <p>• Market is feeling {isBullish ? "spicy 🌶️ (Bullish)" : "chilly ❄️ (Bearish)"}</p>
+            <p>• Your potential treasure chest: ${potentialProfit.toFixed(2)} 💰</p>
+            <p>• Hold this position for {holdTime} (unless you want to YOLO, but we don't recommend that 😅)</p>
+            <p>• Technical indicators are {marketData.rsi > 50 ? "doing the happy dance 💃" : "taking a coffee break ☕"}</p>
+            <p className="text-sm italic mt-4">
+              Remember: Not financial advice - just your friendly neighborhood crypto algorithm trying its best! 🤖
+            </p>
+          </div>
         </div>
       </div>
     </div>
