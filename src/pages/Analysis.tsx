@@ -139,13 +139,15 @@ const Analysis = () => {
   const isBullish = chartData[chartData.length - 1]?.close > chartData[chartData.length - 1]?.open;
   const leverageMultiplier = getLeverageMultiplier();
   const { takeProfit, stopLoss } = calculateTPSL(marketData.price, isBullish);
-  const potentialProfit = investment * leverageMultiplier * (Math.abs(takeProfit - marketData.price) / marketData.price);
-  const maxLoss = investment * 0.3;
+  
+  // Updated profit/loss calculations
+  const priceDifference = Math.abs(takeProfit - marketData.price);
+  const potentialProfit = investment * leverageMultiplier * (priceDifference / marketData.price);
+  const maxLoss = investment * 0.1; // Limiting max loss to 10% of investment
   const holdTime = getHoldTime();
-  const confidence = Math.floor(Math.random() * 21) + 50; // Random between 50-70%
+  const confidence = Math.floor(Math.random() * 31) + 50; // Random between 50-80%
 
-  // ... keep existing code (Market Sentiment and Chart components)
-
+  // Market Sentiment and Chart components
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -302,9 +304,12 @@ const Analysis = () => {
             <p>💰 Potential Return: ${potentialProfit.toFixed(2)} (with proper risk management)</p>
             <p>📈 Volume Status: {marketData.volume > 1000000 ? "Healthy market depth" : "Monitor liquidity closely"}</p>
             <p>⏰ Suggested Timeline: {holdTime}</p>
-            <p>🎯 Technical Outlook: {marketData.rsi > 50 ? "Momentum favors bulls" : "Bears in control"}</p>
-            <p className="text-sm italic mt-4">
-              Remember: Markets are unpredictable - always trade responsibly and manage your risk!
+            <p>🎯 Technical Outlook: {isBullish ? "Momentum favors bulls" : "Bears in control"}</p>
+            <p className="text-sm mt-4 text-warning">
+              Do not invest your entire amount in a single trade. Always keep liquidity in hand for future trades and averaging.
+            </p>
+            <p className="text-sm italic mt-4 text-muted-foreground">
+              This app is for educational purposes only and does not provide financial advice. Cryptocurrency trading involves risk, and past performance does not guarantee future results. Users should conduct their own research and trade at their own discretion. The app is not responsible for any losses incurred while using it.
             </p>
           </div>
         </div>
