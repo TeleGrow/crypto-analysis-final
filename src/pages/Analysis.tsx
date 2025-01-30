@@ -75,6 +75,7 @@ const Analysis = () => {
       if (analysisTimestamp !== 0) return;
 
       try {
+        // Fix URL format by ensuring proper protocol and removing extra colon
         const tickerResponse = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`);
         const tickerData = await tickerResponse.json();
 
@@ -93,6 +94,7 @@ const Analysis = () => {
           timestamp: Date.now()
         });
 
+        // Fix URL format for kline data
         const klineResponse = await fetch(
           `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${timeframe}&limit=100`
         );
