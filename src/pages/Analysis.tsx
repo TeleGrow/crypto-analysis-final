@@ -54,18 +54,18 @@ const Analysis = () => {
     };
     
     const multiplier = timeframeMultipliers[timeframe] || 1;
-    const tpPercentage = 0.01 * multiplier;
-    const slPercentage = 0.005 * multiplier;
+    const riskPercentage = 0.01 * multiplier; // 1% risk
+    const rewardPercentage = 0.015 * multiplier; // 1.5% reward for a 1.5:1 risk-reward ratio
 
     if (isBullish) {
       return {
-        takeProfit: currentPrice * (1 + tpPercentage),
-        stopLoss: currentPrice * (1 - slPercentage)
+        takeProfit: currentPrice * (1 + rewardPercentage),
+        stopLoss: currentPrice * (1 - riskPercentage)
       };
     } else {
       return {
-        takeProfit: currentPrice * (1 - tpPercentage),
-        stopLoss: currentPrice * (1 + slPercentage)
+        takeProfit: currentPrice * (1 - rewardPercentage),
+        stopLoss: currentPrice * (1 + riskPercentage)
       };
     }
   };
@@ -132,11 +132,11 @@ const Analysis = () => {
 
   const isBullish = chartData[chartData.length - 1]?.close > chartData[chartData.length - 1]?.open;
   const leverageMultiplier = getLeverageMultiplier();
+
   const { takeProfit, stopLoss } = calculateTPSL(marketData.price, isBullish);
   const priceDifference = Math.abs(takeProfit - marketData.price);
   const potentialProfit = investment * leverageMultiplier * (priceDifference / marketData.price);
   
-  // Updated max loss calculation
   const slPriceDifference = Math.abs(stopLoss - marketData.price);
   const maxLoss = investment * leverageMultiplier * (slPriceDifference / marketData.price);
   
