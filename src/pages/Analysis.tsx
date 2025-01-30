@@ -135,7 +135,11 @@ const Analysis = () => {
   const { takeProfit, stopLoss } = calculateTPSL(marketData.price, isBullish);
   const priceDifference = Math.abs(takeProfit - marketData.price);
   const potentialProfit = investment * leverageMultiplier * (priceDifference / marketData.price);
-  const maxLoss = investment * 0.1;
+  
+  // Updated max loss calculation
+  const slPriceDifference = Math.abs(stopLoss - marketData.price);
+  const maxLoss = investment * leverageMultiplier * (slPriceDifference / marketData.price);
+  
   const holdTime = getHoldTime();
   const confidence = Math.floor(Math.random() * 31) + 50;
 
