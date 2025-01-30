@@ -4,20 +4,22 @@ import { SymbolSearch } from '@/components/SymbolSearch';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-const timeframes = ['15m', '1h', '6h', '1d'];
+const tradeTypes = ['Short Term', 'Long Term'];
 
 const Index = () => {
   const navigate = useNavigate();
   const [selectedSymbol, setSelectedSymbol] = useState('');
   const [investment, setInvestment] = useState('');
   const [leverage, setLeverage] = useState<'safe' | 'risk'>('safe');
-  const [timeframe, setTimeframe] = useState('15m');
+  const [tradeType, setTradeType] = useState('Short Term');
 
   const handleAnalyze = () => {
-    if (!selectedSymbol || !investment || !timeframe) {
+    if (!selectedSymbol || !investment || !tradeType) {
       return;
     }
-    navigate(`/analysis?symbol=${selectedSymbol}&investment=${investment}&leverage=${leverage}&timeframe=${timeframe}`);
+    // Set timeframe based on trade type
+    const timeframe = tradeType === 'Short Term' ? '1h' : '1d';
+    navigate(`/analysis?symbol=${selectedSymbol}&investment=${investment}&leverage=${leverage}&timeframe=${timeframe}&tradetype=${tradeType}`);
   };
 
   return (
@@ -73,16 +75,16 @@ const Index = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Chart Timeframe
+              Trade Type
             </label>
-            <div className="grid grid-cols-4 gap-2">
-              {timeframes.map((tf) => (
+            <div className="grid grid-cols-2 gap-2">
+              {tradeTypes.map((type) => (
                 <Button
-                  key={tf}
-                  variant={timeframe === tf ? 'default' : 'outline'}
-                  onClick={() => setTimeframe(tf)}
+                  key={type}
+                  variant={tradeType === type ? 'default' : 'outline'}
+                  onClick={() => setTradeType(type)}
                 >
-                  {tf}
+                  {type}
                 </Button>
               ))}
             </div>
@@ -91,7 +93,7 @@ const Index = () => {
           <Button
             onClick={handleAnalyze}
             className="w-full"
-            disabled={!selectedSymbol || !investment || !timeframe}
+            disabled={!selectedSymbol || !investment || !tradeType}
           >
             Analyze
           </Button>
