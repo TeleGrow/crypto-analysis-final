@@ -1,43 +1,16 @@
 import React from 'react';
 
-interface TechnicalAnalysisProps {
-  marketData: {
-    volume: number;
-    rsi: number;
-    macd: number;
-    macdSignal: number;
-  };
-}
-
-export const TechnicalAnalysis: React.FC<TechnicalAnalysisProps> = ({ marketData }) => {
+export const TechnicalAnalysis = ({ marketData, chartData }: any) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-4">
-      <h3 className="text-lg font-semibold mb-4">Technical Analysis</h3>
-      <div className="space-y-4">
-        <div>
-          <h4 className="font-medium mb-2">Technical Indicators</h4>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>RSI (14):</span>
-              <span className={`font-medium ${marketData.rsi > 70 ? 'text-danger' : marketData.rsi < 30 ? 'text-success' : 'text-primary'}`}>
-                {marketData.rsi.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>MACD:</span>
-              <span className={`font-medium ${marketData.macd > marketData.macdSignal ? 'text-success' : 'text-danger'}`}>
-                {marketData.macd.toFixed(4)}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div>
-          <h4 className="font-medium mb-2">Volume Analysis</h4>
-          <p className="text-sm text-gray-600">
-            24h Volume: {marketData.volume.toFixed(2)} USDT
-          </p>
-        </div>
-      </div>
+    <div className="bg-white p-4">
+      <h3 className="text-lg font-semibold">Technical Analysis</h3>
+      <p>📈 ATR (Volatility Indicator): {marketData.atr.toFixed(2)}</p>
+      <p>📉 Order Flow: {marketData.orderFlow > 0 ? 'More Buyers' : 'More Sellers'}</p>
+
+      <h4 className="mt-4 font-semibold">Liquidity Pools</h4>
+      {marketData.liquidityPools.map((pool: any, i: number) => (
+        <p key={i}>Liquidity Pool at {pool.price} (Volume: {pool.volume})</p>
+      ))}
     </div>
   );
 };
